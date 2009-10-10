@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# Copyright (C) 2009 John Hampton <pacopablo@pacopablo.com>
+#
+# Package installer
+
+SRV_PREFIX="${EBPY_SRV_ROOT}/opt"
+FUNCTIONS_PATH="${SRV_PREFIX}/elderberrypy/bash/functions.sh"
+PKG_REPOS="${SRV_PREFIX}/elderberrypy/pkgs"
+
+if [ -f "${FUNCTIONS_PATH}" ]; then
+        . "${FUNCTIONS_PATH}"
+else
+        echo "Unable to find global ElderberryPy Bash functions."
+        echo "Please fix the ElderberryPy install."
+        exit 1
+fi
+
+trap 'echo; exit 1' INT
+
+VERSION="1.0"
+
+function usage(){
+cat << EOF
+usage: ${0} <package> [pkg opts]
+
+  Installs the specified package in the "service" area
+EOF
+}
+
+function pkg_start(){
+    message "Baking ${PKG}"
+}
+function pkg_done(){
+    ok
+}
+
+# Parse the command line options
+ARGSPEC="vh"
+while getopts ${ARGSPEC} opt; do
+    case ${opt} in
+        v)
+            echo "`basename "${0}"`: Version ${VERSION}"
+            exit
+            ;;
+        h)  
+            usage
+            exit
+            ;;
+        *)  
+            usage
+            exit
+            ;;
+    esac
+done
+
+if [ -z "${1}" ]; then
+    usage
+    exit 1
+fi
+PKG="${1}"
+shift
+PKG_PATH="${PKG_REPOS}/${PKG}.sh"
+if [ -f "${PKG_PATH}" ]; then
+    . "${PKG_PATH}"
+else
+    echo "Installing ${PKG} is not supported"
+    exit 1
+fi
+
+# Setup log dir and install log
+LOG_DIR="${SRV_PREFIX}/log/installs"
+LOGFILE="${LOG_DIR}/bake_${PKG}_`date +'%Y%m%d-%H.%M.%S'`"
+touch "${LOGFILE}"
+# Setup and enter build dir
+TEMPDIR=`mktemp -d -t bakepy-XXXXXX`
+into "${TEMPDIR}"
+pkg_start
+pkg_install $@
+pkg_done
+outof
+cd /
+# Clean up build dir
+rm -rf "${TEMPDIR}"

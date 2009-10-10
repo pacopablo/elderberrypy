@@ -1,0 +1,3 @@
+python setup.py install
+
+or install from an rpm

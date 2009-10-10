@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# Copyright (C) John Hampton <pacopablo@pacopablo.com>
+# 
+# Add a new "service" user.
+# Service users live in "${EBPY_SRV_ROOT}/<username>" and inherit their login scripts
+# from ${EBPY_SRV_ROOT}/opt/etc/skel.
+#
+# usage:
+#    adserv username "Description"
+
+function usage(){
+cat << EOF
+usage: ${0} <username> [GECOS Description]
+
+Create a service user named: <username>
+This script must be run as root.
+EOF
+}
+
+
+SRV_ROOT="/srv"
+SRV_GROUP=`getent group | grep "^ftw:" | cut -d : -f 3`
+SRV_SKEL="${SRV_ROOT}/opt/etc/skel"
+SRV_SHELL="/bin/bash"
+
+USERNAME=${1}
+if [ -z ${USERNAME} ]; then
+	usage
+	exit 1
+fi
+
+if [ -z "${2}" ]; then
+	GECOS=""
+else
+	GECOS="${2}"
+fi
+
+if [ "$(id -u)" != "0" ]; then
+	echo "This script must be run as root.  Please use sudo:"
+	echo ""
+	echo "  sudo ${0} ${USERNAME} \"${2}\""
+	echo ""
+	exit
+fi
+
+if [ -z "${GECOS}" ]; then
+	/usr/sbin/useradd -d "${SRV_ROOT}/${USERNAME}" -m -g ${SRV_GROUP} -G ftw -k ${SRV_SKEL} -s ${SRV_SHELL} "${USERNAME}"
+else
+	/usr/sbin/useradd -c "${GECOS}" -d "${SRV_ROOT}/${USERNAME}" -m -g ${SRV_GROUP} -G ftw -k ${SRV_SKEL} -s ${SRV_SHELL} "${USERNAME}"
+fi
+/usr/sbin/usermod -U "${USERNAME}" 
+chmod 700 "${SRV_ROOT}/${USERNAME}"

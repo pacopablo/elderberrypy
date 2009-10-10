@@ -1,0 +1,62 @@
+# /srv/opt/etc/bashrc
+
+# Set our path and PYTHONPATH even for non-interactive sheel
+# this is needed by things like gitosis
+export EBPY_SRV_ROOT="/srv"
+export PATH=$HOME/bin:${EBPY_SRV_ROOT}/opt/bin:$PATH
+export PYTHONVER=`python -c 'import sys; print sys.version[:3]'`
+export PYTHONPATH="$HOME/lib/python${PYTHONVER}/site-packages"
+
+# Test for an interactive shell.  There is no need to set anything
+# past this point for scp and rcp, and it's important to refrain from
+# outputting anything in those cases.
+if [[ $- != *i* ]] ; then
+    # Shell is non-interactive.  Be done now!
+    return
+fi
+
+if [[ -e "${EBPY_SRV_ROOT}/opt/elderberrypy/bash/functions.sh" ]]; then
+    . "${EBPY_SRV_ROOT}/opt/elderberrypy/bash/functions.sh"
+    trap INT
+fi
+
+# Check for the existence of the local site-packages directory for the
+# current default version of python
+if [ ! -d "${PYTHONPATH}" ]; then
+    mkdir -p "${PYTHONPATH}"
+fi
+
+# load user specific aliases
+if [ -d ~/.profile.d/ ]; then
+    for x in ~/.profile.d/*sh; do
+        source $x
+    done
+fi
+
+use_color=false
+if [[ -z ${COLORS} ]]; then
+    set_colors
+fi
+safe_term=${TERM//[^[:alnum:]]/?}   # sanitize TERM
+match_lhs="$(<${COLORS})"
+[[ -z ${match_lhs}    ]] \
+    && type -P dircolors >/dev/null \
+    && match_lhs=$(dircolors --print-database)
+[[ $'\n'${match_lhs} == *$'\n'"TERM "${safe_term}* ]] && use_color=true
+
+if ${use_color} ; then
+    if [[ ${EUID} == 0 ]] ; then
+        PS1='\[\033[01;31m\]\h\[\033[01;34m\] \W \$\[\033[00m\] '
+    else
+        PS1='\[\033[01;32m\]\u@\h\[\033[01;34m\] \w \$\[\033[00m\] '
+    fi
+else
+    if [[ ${EUID} == 0 ]] ; then
+        # show root@ when we don't have colors
+        PS1='\u@\h \W \$ '
+    else
+        PS1='\u@\h \w \$ '
+    fi
+fi
+
+unset use_color safe_term match_lhs

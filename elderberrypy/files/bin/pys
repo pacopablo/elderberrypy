@@ -1,0 +1,104 @@
+#!/bin/bash
+
+# Copyright (C) 2009 John Hampton <pacopablo@pacopablo.com>
+#
+# Script for managing current "service" python install
+SRV_OPT="${EBPY_SRV_ROOT}/opt"
+FUNCTIONS_PATH="${SRV_OPT}/elderberrypy/bash/functions.sh"
+
+if [ -f "${FUNCTIONS_PATH}" ]; then
+        . "${FUNCTIONS_PATH}"
+else
+        echo "Unable to find global ElderberryPy Bash functions."
+        echo "Please fix the ElderberryPy install."
+        exit 1
+fi
+
+function usage(){
+cat << EOF
+usage: ${0} [show|set] 
+
+  show: shows the current service python interpreter
+  set:  sets the current service python version
+EOF
+}
+
+SRV_PY_BIN=${SRV_OPT}/bin
+CUR_SHORT_VER=""
+CUR_FULL_VER=""
+if [ -f "${SRV_PY_BIN}/python" ]; then
+	CUR_SHORT_VER=`${SRV_PY_BIN}/python -c "import sys; sys.stdout.write(sys.version[:3])"`
+	CUR_FULL_VER=`${SRV_PY_BIN}/python -c "import sys; sys.stdout.write(sys.version.split(' ')[0])"`
+fi
+VERSIONS=''
+
+function echo_python(){
+	PYTHON="${1}"
+	SHORT_VER=`${PYTHON} -c "import sys; print(sys.version[:3])"`
+	FULL_VER=`${PYTHON} -c "import sys; print(sys.version.split(' ')[0])"`
+	if [ "${SHORT_VER}" == "${CUR_SHORT_VER}" ]; then
+		echo -e "${white}${SHORT_VER}:  Python ${FULL_VER} ${green}*${endcolor}"
+	else
+		echo "${SHORT_VER}:  Python ${FULL_VER}"
+	fi
+}
+
+function do_show(){
+	version_list
+	if [[ ! -z "${VERSIONS}" ]]; then
+		for py in `ls ${SRV_PY_BIN}/python[1-9].[0-9]`; do
+			echo_python ${py}
+		done
+	fi
+}
+
+
+function version_list(){
+	VERSIONS=""
+	ls ${SRV_PY_BIN}/python[0-9].[0-9] > /dev/null 2>&1
+	if [[ $? -eq 0 ]]; then
+		VERSIONS=$(for x in `ls ${SRV_PY_BIN}/python[0-9].[0-9]`; do ${x} -c "import sys; print(sys.version[:3])"; done)
+	fi
+		
+}
+
+function do_set(){
+	version_list
+	NEW_VER=${1}
+	ver_exists=false
+	for ver in ${VERSIONS}; do
+		if [ "${ver}" == "${NEW_VER}" ]; then
+			ver_exists=true
+			break
+		fi
+	done	
+	if ${ver_exists}; then
+		into "${SRV_PY_BIN}"
+		ln -sf "python${NEW_VER}" python > /dev/null 2>&1 || echo "You must be a member of the srvadmins group to set the Python interpreter"
+		outof
+	else
+		echo "Python "${NEW_VER}" is not installed.  Please check '${0} show' for available python versions"
+	fi
+}
+
+CMD="${1}"
+VERSION="${2}"
+
+case "${CMD}" in
+	show)
+		do_show
+		exit
+		;;
+	set)
+		do_set "${VERSION}"
+		exit
+		;;
+	--help)
+		usage
+		exit
+		;;
+	*)
+		do_show
+		exit
+		;;
+esac

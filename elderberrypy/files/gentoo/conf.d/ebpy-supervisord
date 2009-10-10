@@ -1,0 +1,3 @@
+SUPERVISORCTL="/srv/opt/bin/supervisorctl"
+SUPERVISORD="/srv/opt/bin/supervisord"
+CONFIG="/srv/opt/etc/supervisord.conf"

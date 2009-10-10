@@ -1,0 +1,55 @@
+#!/bin/sh
+# RedHat startup script for a supervisor instance
+#
+# chkconfig: 2345 80 20
+# description: supervisor
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+SUPERVISORCTL="/srv/opt/bin/supervisorctl"
+SUPERVISORD="/srv/opt/bin/supervisord"
+CONFIG="/srv/opt/etc/supervisord.conf"
+
+name="ebpy-supervisor"
+
+[ -f $SUPERVISORD ] || exit 1
+[ -f $SUPERVISORCTL ] || exit 1
+
+RETVAL=0
+
+start() {
+     echo -n "Starting $name: "
+     $SUPERVISORD -c $CONFIG
+     RETVAL=$?
+     [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$name
+     echo
+     return $RETVAL
+}
+
+stop() {
+     echo -n "Stopping $name: "
+     $SUPERVISORCTL -c $CONFIG shutdown
+     RETVAL=$?
+     [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$name
+     echo
+     return $RETVAL
+}
+
+case "$1" in
+         start)
+             start
+             ;;
+
+         stop)
+             stop
+             ;;
+
+         restart)
+             stop
+             start
+             ;;
+esac
+
+exit $REVAL
+

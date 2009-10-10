@@ -1,0 +1,307 @@
+#!python
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2009 John Hampton <pacopablo@pacopablo.com>
+# All rights reserved.
+#
+# This software is licensed as described in the file COPYING, which
+# you should have received as part of this distribution.
+#
+# Author: John Hampton <pacopablo@pacopablo.com>
+VERSION='0.0.1'
+
+import logging
+import logging.handlers
+
+# Setup Logging as early as possible
+LOG="ebpy_install.log"
+FORMAT="%(asctime)s | %(levelname)07s | %(name)s | %(module)s:%(lineno)d | %(message)s"
+MB=1048576
+log = logging.getLogger("elderberrypy.scripts.prebake")
+log.setLevel(logging.DEBUG)
+hndlr = logging.handlers.RotatingFileHandler(LOG, maxBytes=MB, backupCount=5)
+format = logging.Formatter(FORMAT)
+hndlr.setFormatter(format)
+plogger = logging.getLogger("elderberrypy")
+plogger.addHandler(hndlr)
+plogger.setLevel(logging.DEBUG)
+
+import sys
+import os
+import subprocess
+from optparse import OptionParser
+from StringIO import StringIO
+from time import sleep
+from elderberrypy.termctl import OKProgress, TerminalController
+from elderberrypy.fs import check_dir, PKG_BASE, chmod, copy
+from elderberrypy.accounts import create_user, create_group
+from elderberrypy.transforms import set_ebpy_root, set_ebpy_etc, set_ebpy_distutils_root, set_supervisor_init_vals, set_sudoers, set_supervisor_config
+from elderberrypy.distro import DISTROS, guess_distro
+from elderberrypy.errors import UnknownDistro
+from elderberrypy.process import run_prog
+
+
+pre_req_dirs = [
+    {'path': '%(base)s/opt/home',},
+]
+
+ebpy_paths = [
+    {'path': "%(opt)s/bin",                   'uid': "root", 'gid':"srvadmins", 'mode':0775,},
+    {'path': "%(opt)s/etc",                   'uid': "root", 'gid':"srvadmins", 'mode':0775,},
+    {'path': "%(opt)s/etc/nginx/vhosts.d",    'uid': "root", 'gid':"srvadmins", 'mode':0775,},
+    {'path': "%(opt)s/log",                   'uid': "root", 'gid':"srvadmins", 'mode':0775,},
+    {'path': "%(opt)s/log/installs",          'uid': "root", 'gid':"srvadmins", 'mode':0775,},
+    {'path': "%(opt)s/log/supervisord",       'uid': "su",   'gid':"srvadmins",             },
+    {'path': "%(opt)s/log/supervisord/child", 'uid': "su",   'gid':"srvadmins",             },
+    {'path': "%(opt)s/log/nginx",             'uid': "root", 'gid':"srvadmins", 'mode':0775,},
+    {'path': "%(opt)s/libexec",               'uid': "root", 'gid':"srvadmins", 'mode':0775,},
+    {'path': "%(opt)s/include",               'uid': "root", 'gid':"srvadmins", 'mode':0775,},
+    {'path': "%(opt)s/lib",                   'uid': "root", 'gid':"srvadmins", 'mode':0775,},
+    {'path': "%(opt)s/share",                 'uid': "root", 'gid':"srvadmins", 'mode':0775,},
+    {'path': "%(opt)s/src",                   'uid': "root", 'gid':"ftw",       'mode':0775,},
+    {'path': "%(opt)s/var/run/supervisord",                                                 },
+]
+
+ebpy_files = [
+# Scripts
+    {'source': "%(pkg_bin)s/adserv",      'dest':"%(opt)s/bin", 'uid': "su", 'gid':"srvadmins", 'mode':0755, 'transform':set_ebpy_root},
+    {'source': "%(pkg_bin)s/bake",        'dest':"%(opt)s/bin", 'uid': "su", 'gid':"srvadmins", 'mode':0755,},
+    {'source': "%(pkg_bin)s/bakepy",      'dest':"%(opt)s/bin", 'uid': "su", 'gid':"srvadmins", 'mode':0755,},
+    {'source': "%(pkg_bin)s/checksum.py", 'dest':"%(opt)s/bin", 'uid': "su", 'gid':"srvadmins", 'mode':0755,},
+    {'source': "%(pkg_bin)s/eggbuild",    'dest':"%(opt)s/bin", 'uid': "su", 'gid':"srvadmins", 'mode':0755,},
+    {'source': "%(pkg_bin)s/pys",         'dest':"%(opt)s/bin", 'uid': "su", 'gid':"srvadmins", 'mode':0755,},
+# Bash functions
+    {'source': "%(pkg_files)s/elderberrypy/bash/functions.sh", 'dest':"%(opt)s/elderberrypy/bash/", 'uid': "root", 'gid':"srvadmins",},
+# Packages
+    {'source': "%(pkg_files)s/elderberrypy/pkgs/git.sh",        'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+    {'source': "%(pkg_files)s/elderberrypy/pkgs/libcurl.sh",    'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+    {'source': "%(pkg_files)s/elderberrypy/pkgs/python.sh",     'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+    {'source': "%(pkg_files)s/elderberrypy/pkgs/setuptools.sh", 'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+    {'source': "%(pkg_files)s/elderberrypy/pkgs/supervisor.sh", 'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+    {'source': "%(pkg_files)s/elderberrypy/pkgs/distribute.sh", 'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+# Local Etc layout
+    {'source': "%(pkg_files)s/etc/bashrc",                              'dest':"%(opt)s/etc/",                    'uid': "root", 'gid':"srvadmins",              'transform':set_ebpy_root,        },
+    {'source': "%(pkg_files)s/etc/supervisord.conf",                    'dest':"%(opt)s/etc/",                    'uid': "su",   'gid':"srvadmins",              'transform':set_supervisor_config,},
+    {'source': "%(pkg_files)s/etc/skel/.bashrc",                        'dest':"%(opt)s/etc/skel/",               'uid': "root", 'gid':"srvadmins",              'transform':set_ebpy_etc,         },
+    {'source': "%(pkg_files)s/etc/skel/.bash_logout",                   'dest':"%(opt)s/etc/skel/",               'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/skel/.bash_profile",                  'dest':"%(opt)s/etc/skel/",               'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/skel/.gitconfig",                     'dest':"%(opt)s/etc/skel/",               'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/skel/.pydistutils.cfg",               'dest':"%(opt)s/etc/skel/",               'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/skel/.pystartup",                     'dest':"%(opt)s/etc/skel/",               'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/skel/.vimrc",                         'dest':"%(opt)s/etc/skel/",               'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/skel/.egg_cache/.keep",               'dest':"%(opt)s/etc/skel/.egg_cache/",    'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/skel/etc/supervisord.conf",           'dest':"%(opt)s/etc/skel/etc/",           'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/skel/.profile.d/aliases.sh",          'dest':"%(opt)s/etc/skel/.profile.d/",    'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/skel/.profile.d/env.sh",              'dest':"%(opt)s/etc/skel/.profile.d/",    'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/skel/.ssh/authorized_keys",           'dest':"%(opt)s/etc/skel/.ssh/",          'uid': "root", 'gid':"srvadmins", 'mode':0600,                                   },
+    {'source': "%(pkg_files)s/etc/skel/.vim/ftplugin/python_match.vim", 'dest':"%(opt)s/etc/skel/.vim/ftplugin/", 'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/nginx/vhosts.d/.keep",                'dest':"%(opt)s/etc/nginx/vhosts.d/",     'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/nginx/proxy.conf",                    'dest':"%(opt)s/etc/nginx/",              'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/ssl/.keep",                           'dest':"%(opt)s/etc/ssl/",                'uid': "root", 'gid':"srvadmins",                                                },
+    {'source': "%(pkg_files)s/etc/ssl/private/.keep",                   'dest':"%(opt)s/etc/ssl/private/",        'uid': "root", 'gid':"srvadmins",                                                },
+]
+
+ebpy_programs =[
+    ['bake', 'python', '2.6.3'],
+    ['pys', 'set', '2.6'],
+    ['bake', 'distribute'],
+    ['bake', 'git'],
+    ['bake', 'supervisor'],
+]
+
+
+def check_dirs(opts, msg, which_dirs):
+    """ Verify the given directories exist and have the correct permissions. """
+    prereq = OKProgress(opts.term, msg)
+    prereq_len = len(which_dirs)
+    for i, d in enumerate(which_dirs):
+        log.debug('check_dirs: %s' % str(d))
+        rc = check_dir(path_env=args.env, **d)
+        if not rc:
+            prereq.update(-1)
+            break
+        prereq.update(float(i + 1)/float(prereq_len))
+        continue
+
+
+def munge_file(opts, path, munger):
+    """ Munges a given file.
+
+    The contents of the file specified by `path` are fed to the `munger`
+    method and the return from `munger` is saved to the `path`
+    """
+    rc = False
+    p = path % opts.env
+    if os.path.isfile(p):
+        s = StringIO(open(p, 'rb').read())
+        open(p,'wb').write(munger(opts.env, s))
+        rc = True
+    return rc
+
+
+def create_su(opts, msg):
+    """ Create the ElderberryPy super user account: `su` """
+    su_user = {
+        'home': "%(opt)s/home/su" % opts.env,
+        'groups': ['ftw', 'srvadmins'],
+        'gecos': "Service User Root Account",
+        'skel': "%(pkg_base)s/files/etc/skel" % opts.env,
+        'create_home': True,
+    }
+    prog = OKProgress(opts.term, msg)
+    steps = [
+        (create_group, ('ftw',), {}),
+        (create_group, ('srvadmins',), {}),
+        (create_user, ('su',), su_user),
+        (munge_file, (opts, '%(opt)s/home/su/.pydistutils.cfg', set_ebpy_distutils_root,), {}),
+        (munge_file, (opts, '%(opt)s/home/su/.bashrc', set_ebpy_etc,), {}),
+        (chmod, (su_user['home'], 0700), {}),
+    ]
+    num_steps = len(steps)
+    for i, s in enumerate(steps):
+        func, args, kwargs = s
+        rc = func(*args, **kwargs)
+        log.debug('create_su: %s returned: %s' % (func.__name__, str(rc)))
+        if not rc:
+            prog.update(-1)
+            break
+        prog.update(float(i + 1)/float(num_steps))
+        continue
+
+def install_init_files(opts):
+    """ Installs the proper init scripts """
+    success = False
+    try:
+        distro = guess_distro()
+        dist_config = DISTROS[distro]
+        init_src_path = '%(pkg_files)s/' % opts.env + distro + '/init.d'
+        conf_src_path = '%(pkg_files)s/' % opts.env + distro + '/conf.d'
+        if 'init.d' in dist_config:
+            for f in os.listdir(init_src_path):
+                copy(os.path.join(init_src_path, f), dist_config['init.d'],
+                     mode=0755, transform=set_supervisor_init_vals,
+                     path_env=opts.env)
+                cmd = [s % {'init_script':f} for s in dist_config['srvcmd']]
+                success = subprocess.call(cmd, stdout=open(os.devnull, 'w'), stderr=subprocess.STDOUT) == 0
+                if not success:
+                    log.warning("Unable to set service on boot: %s" %f)
+                continue
+            pass
+        if 'conf.d' in dist_config:
+            for f in os.listdir(conf_src_path):
+                copy(os.path.join(conf_src_path, f), dist_config['conf.d'],
+                     mode=0644, transform=set_supervisor_init_vals,
+                     path_env=opts.env)
+                continue
+            pass
+    except UnknownDistro:
+        success = False
+        log.error('Unknown distro.  Unable to install init scripts.')
+    return success
+
+
+def install_elderberrypy_files(opts, msg, which_files):
+    """ Install the ElderberryPy Scripts """
+    prog = OKProgress(opts.term, msg)
+    prog_len = len(which_files) + 1
+    for i, s in enumerate(which_files):
+        log.debug('install_elderberrypy_files: %s' % str(s))
+        rc = copy(path_env=opts.env, **s)
+        if not rc:
+            prog.update(-1)
+            break
+        prog.update(float(i + 1)/float(prog_len))
+        continue
+    sucess = install_init_files(opts)
+    if sucess:
+        prog.update(1.0)
+    else:
+        prog.update(-1.0)
+    pass
+
+def bake_programs(opts, msg, which_progs):
+    """ Install the ElderberryPy Scripts """
+    prog = OKProgress(opts.term, msg)
+    prog_len = len(which_progs)
+    for i, s in enumerate(which_progs):
+        log.debug('bake_programs: %s' % str(s))
+        rc = run_prog(opts.env, s)
+        if not rc:
+            prog.update(-1)
+            break
+        prog.update(float(i + 1)/float(prog_len))
+        continue
+    pass
+
+def update_sudoers(opts, msg):
+    """ Update the sudoers file for adserv """
+    prog = OKProgress(opts.term, msg)
+    steps = [
+        (munge_file, (opts, '/etc/sudoers', set_sudoers,), {}),
+    ]
+    num_steps = len(steps)
+    for i, s in enumerate(steps):
+        func, args, kwargs = s
+        rc = func(*args, **kwargs)
+        log.debug('update_sudoers: %s returned: %s' % (func.__name__, str(rc)))
+        if not rc:
+            prog.update(-1)
+            break
+        prog.update(float(i + 1)/float(num_steps))
+        continue
+
+
+def parse_args(argv):
+    """ Parse the command line options and return an OptionParser instance """
+    global VERSION
+    usage = """
+usage: %prog [base_dir]
+
+Creates an ElderberryPy root in the given directory.  If no directory is
+specified, /srv is used as the base directory
+"""[1:]
+    parser = OptionParser(usage=usage, version=VERSION)
+    options, args = parser.parse_args(argv)
+    options.args = args
+    return options
+
+def verify_args(args):
+    """ Verify the arguments that were parsed """
+    rc = 0
+    if len(args.args) <= 0:
+        args.base_path = '/srv'
+    else:
+        args.base_path = os.path.abspath(os.path.normpath(args.args[0]))
+    if os.path.exists(args.base_path) and not os.path.isdir(args.base_path):
+        print("The base path specified already exists and is not a directory.")
+        print("Please choose another path or remove the existing file.")
+        rc = 1
+    return rc
+
+
+def main(args):
+    """ Do Stuff """
+    args.term = TerminalController()
+    args.env = {
+        'base': args.base_path,
+        'opt': os.path.join(args.base_path, 'opt'),
+        'pkg_base': PKG_BASE,
+        'pkg_bin': os.path.join(PKG_BASE, 'files', 'bin'),
+        'pkg_files': os.path.join(PKG_BASE, 'files'),
+    }
+
+    check_dirs(args, "Checking Pre-requisite directories", pre_req_dirs)
+    create_su(args, "Create ElderberyPy super user: `su`")
+    check_dirs(args, "Creating ElderberryPy directory layout", ebpy_paths)
+    install_elderberrypy_files(args, "Installing ElderberryPy files", ebpy_files)
+    update_sudoers(args, "Update sudoers file")
+    bake_programs(args, "Building Python and associated tools", ebpy_programs)
+    sys.stdout.write('\n')
+    return 0
+
+if __name__ == '__main__':
+    args = parse_args(sys.argv[1:])
+    rc = verify_args(args)
+    if rc == 0:
+        rc = main(args)
+    sys.exit(rc)

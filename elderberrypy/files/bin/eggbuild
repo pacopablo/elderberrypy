@@ -1,0 +1,105 @@
+#!/bin/bash
+
+VERSION="1.0"
+
+FUNCTIONS_PATH="/srv/opt/elderberrypy/bash/functions.sh"
+
+if [ -f "${FUNCTIONS_PATH}" ]; then
+	. "${FUNCTIONS_PATH}"
+else
+	echo "Unable to find global ElderberryPy Bash functions."
+	echo "Please fix the ElderberryPy install."
+	exit 1
+fi
+
+function usage(){
+	cat << EOF
+usage: `basename "${0}"` [options] [install path]
+
+Script to build a python egg and optionally install/copy it to a
+destination.
+
+Options:
+ -v	Print out version number
+ -h 	Print out this help message
+ -s	Specify the path the the setup.py file.  Use when the
+	setup.py file is not located in the current directory.
+ -l	Leave the build log file even if the build succeeds
+EOF
+}
+
+function build_egg(){
+	into "${1}"	
+	if [ ! -f "${SETUP}" ]; then
+		echo "Could not locate the ${SETUP} file."
+		usage
+		outof
+		exit 1
+	fi
+	message "Building egg: ${EGG_NAME}"
+	rm -rf build >> "${LOGFILE}" 2>&1
+	rm -rf dist >> "${LOGFILE}" 2>&1
+	rm -rf *.egg-info >> "${LOGFILE}" 2>&1
+	python ${SETUP} bdist_egg >> "${LOGFILE}" 2>&1; ok fail
+	outof
+}
+
+function copt_to_dest(){
+	message "Copying egg to ${2}"
+	into "${1}"
+	cp -r dist/*.egg "${2}" >> "${LOGFILE}"  2>&1; ok fail
+	outof
+}
+
+function clear_log(){
+	if ${CLEARLOG}; then
+		rm -f "${LOGFILE}"
+	fi
+}
+
+
+# Parse the command line options
+ARGSPEC="s:vhl"
+BASEPATH="."
+SETUP="setup.py"
+CLEARLOG=true
+while getopts ${ARGSPEC} opt; do
+	case ${opt} in
+		v)
+			echo "`basename "${0}"`: Version ${VERSION}"
+			exit
+			;;
+		h)
+			usage
+			exit
+			;;
+		s)
+			BASEPATH=`dirname "${OPTARG}"`
+			SETUP=`basename "${OPTARG}"`
+			;;
+		l)
+			CLEARLOG=false
+			;;
+		*)
+			usage
+			exit 1
+			;;
+	esac
+done
+ARGV=(${@})
+DESTINATION=${ARGV[(${OPTIND} - 1)]}
+
+if [ "${BASEPATH}" == "." ]; then
+	EGGDIR=`pwd`
+else
+	EGGDIR="${BASEPATH}"	
+fi
+EGG_NAME=`basename "${EGGDIR}"`
+LOGFILE="${HOME}/${EGG_NAME}.`date +'%Y%m%d-%H.%M.%S'`.log"
+touch "${LOGFILE}"
+
+build_egg "${BASEPATH}"
+if [ ! -z "${DESTINATION}" ]; then
+	copt_to_dest "${BASEPATH}" "${DESTINATION}"
+fi
+clear_log
