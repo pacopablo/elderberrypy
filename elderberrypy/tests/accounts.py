@@ -29,8 +29,11 @@ class UidTest(unittest.TestCase):
                 for i in xrange(21)])
 
             get_uid(rand_uname)
-        except NonExistentUser:
+            # We shouldn't have said random user in the system
             raise AssertionError('NonExistentUser')
+        except NonExistentUser:
+            # We expect this
+            pass
 
 
 def suite():
