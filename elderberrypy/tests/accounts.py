@@ -21,15 +21,14 @@ class UidTest(unittest.TestCase):
 #    'get_gid',
 #    'check_uid',
 #    'check_gid',
-    def setup(self):
-        self.rand_uname = "".join([random.choice(string.ascii_letters + string.digits + ".-")
-            for i in xrange(21)])
-
     def test_get_uid(self):
         assert(get_uid(0) == 0)
         assert(get_uid('root') == 0)
         try:
-            get_uid(self.rand_uname)
+            rand_uname = "".join([random.choice(string.ascii_letters + string.digits + ".-")
+                for i in xrange(21)])
+
+            get_uid(rand_uname)
         except NonExistentUser:
             raise AssertionError('NonExistentUser')
 
