@@ -32,17 +32,17 @@ __all__ = [
 def get_uid(uid):
     """ Returns the UID number of the given user.
 
-    If the `uid` is an integer, the `uid` is verified against the password
+    If the `uid` is an int, the `uid` is verified against the password
     database.  If it is a string the uid is looked up in the password database.
     If None is passed in, then -1 is returned.  This can be used by os.chown
     to indicate no change in the uid.  If the uid is not found in the password
-    database, or is not a string or integer, then a NonExistentUser exception
+    database, or is not a string or int, then a NonExistentUser exception
     is raised
     """
     try:
         if isinstance(uid, basestring):
             uid = pwd.getpwnam(uid)[2]
-        elif isinstance(uid, integer):
+        elif isinstance(uid, int):
             uid = pwd.getpwuid(uid)[2]
         elif uid is None:
             uid = -1
@@ -56,17 +56,17 @@ def get_uid(uid):
 def get_gid(gid):
     """ Returns the GID number of the given group.
 
-    If the `gid` is an integer, the `gid` is verified against the group
+    If the `gid` is an int, the `gid` is verified against the group
     database.  If it is a string the gid is looked up in the group database.
     If None is passed in, then -1 is returned.  This can be used by os.chown
     to indicate no change in the gid.  If the gid is not found in the group
-    database, or is not a string or integer, then a NonExistentGroup exception
+    database, or is not a string or int, then a NonExistentGroup exception
     is raised
     """
     try:
         if isinstance(gid, basestring):
             gid = grp.getgrnam(gid)[2]
-        elif isinstance(uid, integer):
+        elif isinstance(uid, int):
             gid = grp.getgrgid(gid)[2]
         elif gid is None:
             gid = -1
@@ -81,7 +81,7 @@ def get_gid(gid):
 def check_gid(gid):
     """ Returns whether or not the gid specified exists.
 
-    The gid may be an integer or string.
+    The gid may be an int or string.
     """
     valid = True
     try:
@@ -93,7 +93,7 @@ def check_gid(gid):
 def check_uid(uid):
     """ Returns whether or not the uid specified exists.
 
-    The uid may be an integer or string.
+    The uid may be an int or string.
     """
     valid = True
     try:
