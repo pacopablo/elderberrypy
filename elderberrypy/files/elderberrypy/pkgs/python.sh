@@ -13,7 +13,7 @@ function pkg_install(){
     fi
     PY_VERSION="Python-${VERSION}"
     PY_TARBALL="${PY_VERSION}.tar.bz2"
-    PYTHON="http://python.org/ftp/python/2.6.3/${PY_TARBALL}"
+    PYTHON="http://python.org/ftp/python/${VERSION}/${PY_TARBALL}"
     guess_distro
     case ${DISTRO} in
         gentoo)

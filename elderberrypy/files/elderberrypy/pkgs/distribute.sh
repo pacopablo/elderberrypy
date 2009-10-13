@@ -9,7 +9,7 @@
 #  outof
 
 # Setuptools crap
-DISTRIBUTE_VER=0.6.3
+DISTRIBUTE_VER=0.6.4
 DISTRIBUTE_URL="http://pypi.python.org/packages/source/d/distribute/distribute-${DISTRIBUTE_VER}.tar.gz"
 
 function pkg_install(){
