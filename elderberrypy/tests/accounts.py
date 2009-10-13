@@ -11,6 +11,7 @@
 import unittest
 
 from elderberrypy.accounts import get_uid, check_uid, get_gid, check_gid
+from elderberrypy.errors import NonExistentUser
 
 import random
 import string
