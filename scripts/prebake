@@ -8,7 +8,7 @@
 # you should have received as part of this distribution.
 #
 # Author: John Hampton <pacopablo@pacopablo.com>
-VERSION = "0.1.11"
+VERSION = "0.1.12"
 
 import logging
 import logging.handlers
@@ -39,6 +39,39 @@ from elderberrypy.transforms import set_ebpy_root, set_ebpy_etc, set_ebpy_distut
 from elderberrypy.distro import DISTROS, guess_distro
 from elderberrypy.errors import UnknownDistro
 from elderberrypy.process import run_prog
+
+RESTRICTED_PATHS = {
+    'explicit': [
+        '/',
+        '/bin',
+        '/boot',
+        '/home',
+        '/lib',
+        '/lib64',
+        '/lost+found',
+        '/media',
+        '/mnt',
+        '/opt',
+        '/root',
+        '/sbin',
+        '/selinux',
+        '/srv',
+        '/tmp',
+        '/usr',
+        '/usr/bin',
+        '/usr/local',
+        '/usr/local/bin',
+        '/var/spool',
+        '/var/run',
+        '/var/tmp',
+    ],
+    'tree': [
+        '/dev',
+        '/sys',
+        '/etc',
+        '/proc',
+    ],
+}
 
 
 pre_req_dirs = [
@@ -140,12 +173,19 @@ def count_files(path):
 def cleanup_files(opts, filelist):
     """ Recusively remove the list of files given."""
 
-    print("%s (%s)" % (str(filelist), type(filelist)))
     if not isinstance(filelist, list):
         filelist = [filelist,]
     errors = 0
     for f in filelist:
         status = OKProgress(opts.term, "Removing ElderberryPy environment files for %s" % f)
+        protected = f in RESTRICTED_PATHS['explicit']:
+        for base in RESTRICTED_PATHS['tree']:
+            if f.startswith(base):
+                protected = True
+                break
+        if protected:
+            status.update(-1)
+            continue
         status_len = count_files(f) + 1
         step_count = 0
         try:
