@@ -8,7 +8,7 @@
 # you should have received as part of this distribution.
 #
 # Author: John Hampton <pacopablo@pacopablo.com>
-VERSION='0.0.1'
+VERSION='0.1.0'
 
 import logging
 import logging.handlers
@@ -102,8 +102,8 @@ ebpy_files = [
 ]
 
 ebpy_programs =[
-    ['bake', 'python', '2.6.3'],
-    ['pys', 'set', '2.6'],
+    ['bake', 'python', '2.7.2'],
+    ['pys', 'set', '2.7'],
     ['bake', 'distribute'],
     ['bake', 'git'],
     ['bake', 'supervisor'],
