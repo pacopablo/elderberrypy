@@ -8,7 +8,7 @@
 # you should have received as part of this distribution.
 #
 # Author: John Hampton <pacopablo@pacopablo.com>
-VERSION = "0.1.10"
+VERSION = "0.1.11"
 
 import logging
 import logging.handlers
@@ -161,7 +161,7 @@ def cleanup_files(opts, filelist):
 #                            os.remove(fpath)
                             log.debug('cleanup_files: removed %s' % fpath)
                             step_count += 1
-                            status.update(float(step_count)/float(prereq_len))
+                            status.update(float(step_count)/float(status_len))
                         continue
 #                    os.removedirs(f)
                     log.debug('cleanup_files: removed %s' % str(f))
@@ -170,12 +170,12 @@ def cleanup_files(opts, filelist):
 #                os.remove(f)
                 log.debug('cleanup_files: removed %s' % str(f))
                 step_count += 1
-            status.update(float(step_count)/float(prereq_len))
+            status.update(float(step_count)/float(status_len))
         except Exception, e:
             log.debug('cleanup_filess: %s' % str(e))
             errors += 1
         if errors:
-            prereq.update(-1)
+            status.update(-1)
         continue
     return errors
 
