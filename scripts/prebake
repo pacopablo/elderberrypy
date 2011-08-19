@@ -143,7 +143,7 @@ def cleanup_files(opts, filelist):
     errors = 0
     for f in filelist:
         status = OKProgress(opts.term, "Removing ElderberryPy environment files for %s" % f)
-        status_len = count_files(f + 1)
+        status_len = count_files(f) + 1
         step_count = 0
         try:
             if os.path.isdir(f):
