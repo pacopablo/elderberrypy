@@ -319,7 +319,7 @@ specified, /srv is used as the base directory
     parser.add_option('', '--all', dest="all", action="store_true",
                       default=False, help="When combined with --cleanup, "
                       "remove groups as well as users.  Only use --all when "
-                      "removing the last ElderberryPy environment"))
+                      "removing the last ElderberryPy environment")
     options, args = parser.parse_args(argv)
     options.args = args
     return options
