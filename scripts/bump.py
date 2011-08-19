@@ -77,7 +77,7 @@ def bump_version_number(path, bump_major=False, bump_minor=False, bump_patch=Tru
             version_index = i
         continue
     if version_index >= 0:
-        src[version_index] = 'VERSION = %d.%d.%d\n' % (major, minor, patch)
+        src[version_index] = 'VERSION = "%d.%d.%d"\n' % (major, minor, patch)
         print("Bumped %s to VERSION: %d.%d.%d" % (path, major, minor, patch))
     dest = open(path, 'w').writelines(src)
     return version_index
