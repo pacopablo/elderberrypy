@@ -350,10 +350,10 @@ def main(args):
         'pkg_files': os.path.join(PKG_BASE, 'files'),
     }
     if args.cleanup:
-        cleanup_users(args)
-        if args.all:
-            cleanup_groups(args)
-        cleanup_dirs(args)
+#        cleanup_users(args)
+#        if args.all:
+#            cleanup_groups(args)
+        cleanup_files(args.base_path)
     else:
         check_dirs(args, "Checking Pre-requisite directories", pre_req_dirs)
         create_su(args, "Create ElderberyPy super user: `su`")
