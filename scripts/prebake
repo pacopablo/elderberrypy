@@ -332,7 +332,7 @@ def verify_args(args):
     if len(args.args) <= 0:
         args.base_path = '/srv'
     else:
-        args.base_path = os.path.abspath(os.path.normpath(args.args[0]))
+        args.base_path = os.path.abspath(os.path.normpath(args.args[0].rstrip('/')))
     if not args.cleanup:
         if os.path.exists(args.base_path) and not os.path.isdir(args.base_path):
             print("The base path specified already exists and is not a directory.")
