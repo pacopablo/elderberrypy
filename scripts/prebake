@@ -8,7 +8,7 @@
 # you should have received as part of this distribution.
 #
 # Author: John Hampton <pacopablo@pacopablo.com>
-VERSION = "0.1.6"
+VERSION = "0.1.7"
 
 import logging
 import logging.handlers
@@ -140,8 +140,9 @@ def count_files(path):
 def cleanup_files(opts, filelist):
     """ Recusively remove the list of files given."""
 
+    print("%s (%s)" % (str(filelist), type(filelist)))
     if not isinstance(filelist, list):
-        filelist = list(filelist)
+        filelist = [filelist,]
     errors = 0
     for f in filelist:
         status = OKProgress(opts.term, "Removing ElderberryPy environment files for %s" % f)
