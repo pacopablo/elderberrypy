@@ -140,6 +140,8 @@ def count_files(path):
 def cleanup_files(opts, filelist):
     """ Recusively remove the list of files given."""
 
+    if not isinstance(filelist, list):
+        filelist = list(filelist)
     errors = 0
     for f in filelist:
         status = OKProgress(opts.term, "Removing ElderberryPy environment files for %s" % f)
