@@ -8,7 +8,7 @@
 # you should have received as part of this distribution.
 #
 # Author: John Hampton <pacopablo@pacopablo.com>
-VERSION='0.1.0'
+VERSION='0.1.1'
 
 import logging
 import logging.handlers
