@@ -8,7 +8,7 @@
 # you should have received as part of this distribution.
 #
 # Author: John Hampton <pacopablo@pacopablo.com>
-VERSION = "0.1.7"
+VERSION = "0.1.8"
 
 import logging
 import logging.handlers
@@ -152,27 +152,27 @@ def cleanup_files(opts, filelist):
             if os.path.isdir(f):
                 if os.path.islink(f):
 #                    os.remove(f)
-                    log.debug('%: removed %s' % (func.__name__, str(f)))
+                    log.debug('cleanup_files: removed %s' % str(f))
                     step_count += 1
                 else:
                     for root, dirs, files in os.walk(f):
                         for name in files:
                             fpath = os.path.join(root, name)
 #                            os.remove(fpath)
-                            log.debug('%: removed %s' % (func.__name__, fpath))
+                            log.debug('cleanup_files: removed %s' % fpath)
                             step_count += 1
                             status.update(float(step_count)/float(prereq_len))
                         continue
 #                    os.removedirs(f)
-                    log.debug('%: removed %s' % (func.__name__, str(f)))
+                    log.debug('cleanup_files: removed %s' % str(f))
                     step_count += 1
             if os.path.isfile(f):
 #                os.remove(f)
-                log.debug('%: removed %s' % (func.__name__, str(f)))
+                log.debug('cleanup_files: removed %s' % str(f))
                 step_count += 1
             status.update(float(step_count)/float(prereq_len))
         except Exception, e:
-            log.debug('%s: %s' % (func.__name__, str(e.strerror)))
+            log.debug('cleanup_filess: %s' % str(e.strerror))
             errors += 1
         if errors:
             prereq.update(-1)
