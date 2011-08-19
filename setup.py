@@ -14,7 +14,7 @@ import os
 import sys
 from setuptools import setup, find_packages
 
-VERSION = "0.1.8"
+VERSION = "0.1.10"
 
 data_files=[
     ('share/docs/elderberrypy', glob.glob('COPYING*')),

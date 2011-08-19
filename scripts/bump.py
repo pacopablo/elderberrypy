@@ -91,6 +91,8 @@ def main(args):
     rc = bump_version_number(args.setuppy, args.major, args.minor, args.patch)
     if rc == -1:
         print("Unable to bump version for %s" % args.setuppy)
+    else:
+        rc = 0
     return rc
 
 if __name__ == '__main__':
