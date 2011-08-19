@@ -156,7 +156,7 @@ def cleanup_files(filelist):
                         for name in files:
                             fpath = os.path.join(root, name)
 #                            os.remove(fpath)
-                            log.debug('%: removed %s' % (func.__name__, fpath)
+                            log.debug('%: removed %s' % (func.__name__, fpath))
                             step_count += 1
                             status.update(float(step_count)/float(prereq_len))
                         continue
