@@ -9,7 +9,7 @@
 # Author: John Hampton <pacopablo@pacopablo.com>
 
 import unittest
-from elderberrypy.tests.accounts import UidTest
+#from elderberrypy.tests.accounts import UidTest
 
 def suite():
     suite = unittest.TestSuite()
@@ -22,3 +22,5 @@ def suite():
 
 if __name__ == '__main__':
     unittest.main(defaultTest='suite')
+else:
+    t = suite()
