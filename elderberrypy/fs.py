@@ -200,7 +200,10 @@ def copy(source=None, dest=None, uid=None, gid=None, mode=None, transform=lambda
 def count_files(path):
     """ Return the number of files in a given path.
 
-    Count does not include directories, just files contained within the directories. """
+    Count does not include directories, just files contained within the
+    directories.
+    """
+
     n = 0
     if os.path.isfile(path):
         n = 1
@@ -279,7 +282,7 @@ def remove_path(path):
     """
 
     errors = 0
-    fullpath = os.path.abspath(f)
+    fullpath = os.path.abspath(path)
 
     # Verify that we aren't trying to remove a critical system path.
     protected = fullpath in RESTRICTED_PATHS['explicit']
@@ -293,30 +296,32 @@ def remove_path(path):
 
     file_count = 0
     try:
-        if os.path.isdir(f):
-            if os.path.islink(f):
-#                    os.remove(f)
-                log.debug('remove_path: removed %s' % str(f))
-                step_count += 1
-                yield step_count
+        if os.path.isdir(path):
+            if os.path.islink(path):
+                os.remove(path)
+                log.debug('remove_path: removed %s' % str(path))
+                file_count += 1
+                yield file_count
             else:
-                for root, dirs, files in os.walk(f):
+                for root, dirs, files in os.walk(path, topdown=False):
                     for name in files:
                         fpath = os.path.join(root, name)
-#                            os.remove(fpath)
+                        os.remove(fpath)
                         log.debug('remove_path: removed %s' % fpath)
-                        step_count += 1
-                        yield step_count
+                        file_count += 1
+                        yield file_count
+                    for name in dirs:
+                        os.rmdir(os.path.join(root, name))
                     continue
-#                    os.removedirs(f)
-                log.debug('remove_path: removed %s' % str(f))
-                step_count += 1
-                yield step_count
-        if os.path.isfile(f):
-#            os.remove(f)
-            log.debug('remove_path: removed %s' % str(f))
-            step_count += 1
-            yield step_count
+                os.rmdir(path)
+                log.debug('remove_path: removed %s' % str(path))
+                file_count += 1
+                yield file_count
+        if os.path.isfile(path):
+            os.remove(path)
+            log.debug('remove_path: removed %s' % str(path))
+            file_count += 1
+            yield file_count
     except Exception, e:
         log.debug('remove_path: %s' % str(e))
         errors += 1
