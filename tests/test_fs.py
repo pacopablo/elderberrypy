@@ -63,7 +63,7 @@ def teardown_files():
 
     if os.path.isdir(BASE_PATH) and (not os.path.islink(BASE_PATH)):
         if os.path.abspath(BASE_PATH) not in ['/', '/etc', '/bin', '/sbin']:
-#            os.system('rm -rf "%s"' % BASE_PATH)
+            os.system('rm -rf "%s"' % BASE_PATH)
             pass
 
 
