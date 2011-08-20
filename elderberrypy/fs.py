@@ -28,10 +28,46 @@ __all__ = [
     'copy',
     'PKG_BASE',
     'DevNull',
+    'cleanup_files',
+    'count_files',
 #    'touch',
 ]
 
 PKG_BASE = os.path.dirname(__file__)
+
+RESTRICTED_PATHS = {
+    'explicit': [
+        '/',
+        '/bin',
+        '/boot',
+        '/home',
+        '/lib',
+        '/lib64',
+        '/lost+found',
+        '/media',
+        '/mnt',
+        '/opt',
+        '/root',
+        '/sbin',
+        '/selinux',
+        '/srv',
+        '/tmp',
+        '/usr',
+        '/usr/bin',
+        '/usr/local',
+        '/usr/local/bin',
+        '/var/spool',
+        '/var/run',
+        '/var/tmp',
+    ],
+    'tree': [
+        '/dev',
+        '/sys',
+        '/etc',
+        '/proc',
+    ],
+}
+
 
 class DevNull(object):
     """ Throw away everything written to the object """
@@ -158,40 +194,6 @@ def copy(source=None, dest=None, uid=None, gid=None, mode=None, transform=lambda
             continue
 
     return success
-
-
-RESTRICTED_PATHS = {
-    'explicit': [
-        '/',
-        '/bin',
-        '/boot',
-        '/home',
-        '/lib',
-        '/lib64',
-        '/lost+found',
-        '/media',
-        '/mnt',
-        '/opt',
-        '/root',
-        '/sbin',
-        '/selinux',
-        '/srv',
-        '/tmp',
-        '/usr',
-        '/usr/bin',
-        '/usr/local',
-        '/usr/local/bin',
-        '/var/spool',
-        '/var/run',
-        '/var/tmp',
-    ],
-    'tree': [
-        '/dev',
-        '/sys',
-        '/etc',
-        '/proc',
-    ],
-}
 
 
 

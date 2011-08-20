@@ -8,7 +8,7 @@
 # you should have received as part of this distribution.
 #
 # Author: John Hampton <pacopablo@pacopablo.com>
-VERSION='1.0.0'
+VERSION='1.0.1'
 
 import sys
 import os
@@ -39,14 +39,14 @@ def verify_args(args):
     rc = 0
     files = os.listdir('.')
     wrong_base_path = False
-    args.prebake = 'prebake'
+    args.prebake = 'ebpy'
     args.setuppy = 'setup.py'
     if args.prebake in files:
         args.setuppy = '../setup.py'
         if not os.path.isfile(args.setuppy):
             wrong_base_path = True
     elif args.setuppy in files:
-        args.prebake = 'scripts/prebake'
+        args.prebake = 'scripts/ebpy'
         if not os.path.isfile(args.prebake):
             wrong_base_path = True
     if wrong_base_path:

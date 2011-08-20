@@ -49,7 +49,7 @@ package_data=[
 ]
 
 scripts = [
-    'scripts/prebake',
+    'scripts/ebpy',
 ]
 
 setup(
