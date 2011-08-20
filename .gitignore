@@ -4,3 +4,5 @@ build/
 dist/
 MANIFEST
 ebpy_install.log
+*.egg-info
+*.egg

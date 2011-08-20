@@ -9,6 +9,7 @@
 # Author: John Hampton <pacopablo@pacopablo.com>
 
 import unittest
+from elderberrypy.tests.accounts import UidTest
 
 def suite():
     suite = unittest.TestSuite()

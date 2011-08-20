@@ -81,7 +81,9 @@ manage the installation, configuration, and execution of Python services.
         'Topic :: System :: Systems Administration',
         'Topic :: System :: Installation/Setup',
     ],
-    test_suite='elderberrypy.tests.suite',
+#    test_suite='elderberrypy.tests.suite',
+    test_suite='nose.collector',
     data_files=data_files,
+    setup_requires = ['nose',],
 )
 
