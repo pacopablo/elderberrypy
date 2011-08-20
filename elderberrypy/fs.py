@@ -16,7 +16,7 @@ import grp
 import logging
 import glob
 
-from elderberrypy.errors import NonExistentUser, NonExistentGroup
+from elderberrypy.errors import NonExistentUser, NonExistentGroup, RestrictedPath
 from elderberrypy.accounts import get_uid, get_gid
 
 log = logging.getLogger('elderberrypy.fs')
@@ -158,3 +158,165 @@ def copy(source=None, dest=None, uid=None, gid=None, mode=None, transform=lambda
             continue
 
     return success
+
+
+RESTRICTED_PATHS = {
+    'explicit': [
+        '/',
+        '/bin',
+        '/boot',
+        '/home',
+        '/lib',
+        '/lib64',
+        '/lost+found',
+        '/media',
+        '/mnt',
+        '/opt',
+        '/root',
+        '/sbin',
+        '/selinux',
+        '/srv',
+        '/tmp',
+        '/usr',
+        '/usr/bin',
+        '/usr/local',
+        '/usr/local/bin',
+        '/var/spool',
+        '/var/run',
+        '/var/tmp',
+    ],
+    'tree': [
+        '/dev',
+        '/sys',
+        '/etc',
+        '/proc',
+    ],
+}
+
+
+
+def count_files(path):
+    """ Return the number of files in a given path.
+
+    Count does not include directories, just files contained within the directories. """
+    n = 0
+    if os.path.isfile(path):
+        n = 1
+    else:
+        for root, dirs, files in os.walk(path):
+            n += len(files)
+    return n
+
+
+#def cleanup_files(opts, path, progress_update=lambda x: x):
+#    """ Recusively remove the list of files given."""
+#
+#    if not isinstance(filelist, list):
+#        filelist = [filelist,]
+#    errors = 0
+#    for f in filelist:
+#        status = OKProgress(opts.term, "Removing ElderberryPy environment files for %s" % f)
+#        protected = f in RESTRICTED_PATHS['explicit']
+#        for base in RESTRICTED_PATHS['tree']:
+#            if f.startswith(base):
+#                protected = True
+#                break
+#        if protected:
+#            status.update(-1)
+#            continue
+#        status_len = count_files(f) + 1
+#        step_count = 0
+#        try:
+#            if os.path.isdir(f):
+#                if os.path.islink(f):
+##                    os.remove(f)
+#                    log.debug('cleanup_files: removed %s' % str(f))
+#                    step_count += 1
+#                else:
+#                    for root, dirs, files in os.walk(f):
+#                        for name in files:
+#                            fpath = os.path.join(root, name)
+##                            os.remove(fpath)
+#                            log.debug('cleanup_files: removed %s' % fpath)
+#                            step_count += 1
+#                            status.update(float(step_count)/float(status_len))
+#                        continue
+##                    os.removedirs(f)
+#                    log.debug('cleanup_files: removed %s' % str(f))
+#                    step_count += 1
+#            if os.path.isfile(f):
+##                os.remove(f)
+#                log.debug('cleanup_files: removed %s' % str(f))
+#                step_count += 1
+#            status.update(float(step_count)/float(status_len))
+#        except Exception, e:
+#            log.debug('cleanup_filess: %s' % str(e))
+#            errors += 1
+#        if errors:
+#            status.update(-1)
+#        continue
+#    return errors
+
+
+def cleanup_files(path):
+    """ Recusively remove the path given.
+
+    The method yields the number of files removed, after each iteration.
+    This assists in being able to use the function with progress bars.
+
+    If the function tries to remove a path in the RESTRICTED_PATHS list, it
+    will raise a RestrictedPath exception.
+
+    For example:
+
+    progress = OKProgress(opts.term, "Removing path: /some/path")
+    for file_count in cleanup_files('/some/path'):
+        progress.update(percent(num_files, file_count))
+        continue
+
+    """
+
+    errors = 0
+    fullpath = os.path.abspath(f)
+
+    # Verify that we aren't trying to remove a critical system path.
+    protected = fullpath in RESTRICTED_PATHS['explicit']
+    for base in RESTRICTED_PATHS['tree']:
+        if fullpath.startswith(base):
+            protected = True
+            break
+    if protected:
+        raise RestrictedPath(fullpath)
+
+
+    file_count = 0
+    try:
+        if os.path.isdir(f):
+            if os.path.islink(f):
+#                    os.remove(f)
+                log.debug('cleanup_files: removed %s' % str(f))
+                step_count += 1
+                yield step_count
+            else:
+                for root, dirs, files in os.walk(f):
+                    for name in files:
+                        fpath = os.path.join(root, name)
+#                            os.remove(fpath)
+                        log.debug('cleanup_files: removed %s' % fpath)
+                        step_count += 1
+                        yield step_count
+                    continue
+#                    os.removedirs(f)
+                log.debug('cleanup_files: removed %s' % str(f))
+                step_count += 1
+                yield step_count
+        if os.path.isfile(f):
+#            os.remove(f)
+            log.debug('cleanup_files: removed %s' % str(f))
+            step_count += 1
+            yield step_count
+    except Exception, e:
+        log.debug('cleanup_filess: %s' % str(e))
+        errors += 1
+        raise
+    return

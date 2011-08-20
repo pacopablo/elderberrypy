@@ -20,6 +20,8 @@ log = logging.getLogger('elderberrypy.errors')
 __all__ = [
     'NonExistentUser',
     'NonExistentGroup',
+    'UnknownDistro',
+    'RestrictedPath',
 ]
 
 class NonExistentUser(Exception):
@@ -31,3 +33,7 @@ class NonExistentGroup(Exception):
         self.gid = gid
 
 class UnknownDistro(Exception): pass
+
+class RestrictedPath(Exception):
+    def __ini__(self, path):
+        self.poth = path
