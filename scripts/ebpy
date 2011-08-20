@@ -33,45 +33,13 @@ from optparse import OptionParser
 from StringIO import StringIO
 from time import sleep
 from elderberrypy.termctl import OKProgress, TerminalController
-from elderberrypy.fs import check_dir, PKG_BASE, chmod, copy
+from elderberrypy.fs import check_dir, PKG_BASE, chmod, copy, count_files, remove_path
 from elderberrypy.accounts import create_user, create_group
 from elderberrypy.transforms import set_ebpy_root, set_ebpy_etc, set_ebpy_distutils_root, set_supervisor_init_vals, set_sudoers, set_supervisor_config
 from elderberrypy.distro import DISTROS, guess_distro
 from elderberrypy.errors import UnknownDistro
 from elderberrypy.process import run_prog
-
-RESTRICTED_PATHS = {
-    'explicit': [
-        '/',
-        '/bin',
-        '/boot',
-        '/home',
-        '/lib',
-        '/lib64',
-        '/lost+found',
-        '/media',
-        '/mnt',
-        '/opt',
-        '/root',
-        '/sbin',
-        '/selinux',
-        '/srv',
-        '/tmp',
-        '/usr',
-        '/usr/bin',
-        '/usr/local',
-        '/usr/local/bin',
-        '/var/spool',
-        '/var/run',
-        '/var/tmp',
-    ],
-    'tree': [
-        '/dev',
-        '/sys',
-        '/etc',
-        '/proc',
-    ],
-}
+from elderberrypy.utils import percent
 
 
 pre_req_dirs = [
@@ -157,19 +125,6 @@ def check_dirs(opts, msg, which_dirs):
         continue
 
 
-def count_files(path):
-    """ Return the number of files in a given path.
-
-    Count does not include directories, just files contained within the directories. """
-    n = 0
-    if os.path.isfile(path):
-        n = 1
-    else:
-        for root, dirs, files in os.walk(path):
-            n += len(files)
-    return n
-
-
 def cleanup_files(opts, filelist):
     """ Recusively remove the list of files given."""
 
@@ -177,47 +132,17 @@ def cleanup_files(opts, filelist):
         filelist = [filelist,]
     errors = 0
     for f in filelist:
-        status = OKProgress(opts.term, "Removing ElderberryPy environment files for %s" % f)
-        protected = f in RESTRICTED_PATHS['explicit']
-        for base in RESTRICTED_PATHS['tree']:
-            if f.startswith(base):
-                protected = True
-                break
-        if protected:
-            status.update(-1)
-            continue
-        status_len = count_files(f) + 1
-        step_count = 0
+        progress = OKProgress(opts.term, "Removing ElderberryPy environment files for %s" % f)
+        num_files = count_files(f) + 1
         try:
-            if os.path.isdir(f):
-                if os.path.islink(f):
-#                    os.remove(f)
-                    log.debug('cleanup_files: removed %s' % str(f))
-                    step_count += 1
-                else:
-                    for root, dirs, files in os.walk(f):
-                        for name in files:
-                            fpath = os.path.join(root, name)
-#                            os.remove(fpath)
-                            log.debug('cleanup_files: removed %s' % fpath)
-                            step_count += 1
-                            status.update(float(step_count)/float(status_len))
-                        continue
-#                    os.removedirs(f)
-                    log.debug('cleanup_files: removed %s' % str(f))
-                    step_count += 1
-            if os.path.isfile(f):
-#                os.remove(f)
-                log.debug('cleanup_files: removed %s' % str(f))
-                step_count += 1
-            status.update(float(step_count)/float(status_len))
-        except Exception, e:
-            log.debug('cleanup_filess: %s' % str(e))
-            errors += 1
-        if errors:
-            status.update(-1)
-        continue
-    return errors
+            for file_count in remove_path(f):
+                progress.update(percent(num_files, file_count))
+                continue
+        except:
+            log.debug("Unable to remove %s" % f, exc_info=True)
+            progress.update(-1)
+
+    return
 
 
 def munge_file(opts, path, munger):

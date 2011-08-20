@@ -260,7 +260,7 @@ def count_files(path):
 #    return errors
 
 
-def cleanup_files(path):
+def remove_path(path):
     """ Recusively remove the path given.
 
     The method yields the number of files removed, after each iteration.
@@ -272,7 +272,7 @@ def cleanup_files(path):
     For example:
 
     progress = OKProgress(opts.term, "Removing path: /some/path")
-    for file_count in cleanup_files('/some/path'):
+    for file_count in remove_path('/some/path'):
         progress.update(percent(num_files, file_count))
         continue
 
@@ -296,7 +296,7 @@ def cleanup_files(path):
         if os.path.isdir(f):
             if os.path.islink(f):
 #                    os.remove(f)
-                log.debug('cleanup_files: removed %s' % str(f))
+                log.debug('remove_path: removed %s' % str(f))
                 step_count += 1
                 yield step_count
             else:
@@ -304,21 +304,21 @@ def cleanup_files(path):
                     for name in files:
                         fpath = os.path.join(root, name)
 #                            os.remove(fpath)
-                        log.debug('cleanup_files: removed %s' % fpath)
+                        log.debug('remove_path: removed %s' % fpath)
                         step_count += 1
                         yield step_count
                     continue
 #                    os.removedirs(f)
-                log.debug('cleanup_files: removed %s' % str(f))
+                log.debug('remove_path: removed %s' % str(f))
                 step_count += 1
                 yield step_count
         if os.path.isfile(f):
 #            os.remove(f)
-            log.debug('cleanup_files: removed %s' % str(f))
+            log.debug('remove_path: removed %s' % str(f))
             step_count += 1
             yield step_count
     except Exception, e:
-        log.debug('cleanup_filess: %s' % str(e))
+        log.debug('remove_path: %s' % str(e))
         errors += 1
         raise
     return
