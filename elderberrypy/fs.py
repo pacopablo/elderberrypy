@@ -213,56 +213,6 @@ def count_files(path):
     return n
 
 
-#def cleanup_files(opts, path, progress_update=lambda x: x):
-#    """ Recusively remove the list of files given."""
-#
-#    if not isinstance(filelist, list):
-#        filelist = [filelist,]
-#    errors = 0
-#    for f in filelist:
-#        status = OKProgress(opts.term, "Removing ElderberryPy environment files for %s" % f)
-#        protected = f in RESTRICTED_PATHS['explicit']
-#        for base in RESTRICTED_PATHS['tree']:
-#            if f.startswith(base):
-#                protected = True
-#                break
-#        if protected:
-#            status.update(-1)
-#            continue
-#        status_len = count_files(f) + 1
-#        step_count = 0
-#        try:
-#            if os.path.isdir(f):
-#                if os.path.islink(f):
-##                    os.remove(f)
-#                    log.debug('cleanup_files: removed %s' % str(f))
-#                    step_count += 1
-#                else:
-#                    for root, dirs, files in os.walk(f):
-#                        for name in files:
-#                            fpath = os.path.join(root, name)
-##                            os.remove(fpath)
-#                            log.debug('cleanup_files: removed %s' % fpath)
-#                            step_count += 1
-#                            status.update(float(step_count)/float(status_len))
-#                        continue
-##                    os.removedirs(f)
-#                    log.debug('cleanup_files: removed %s' % str(f))
-#                    step_count += 1
-#            if os.path.isfile(f):
-##                os.remove(f)
-#                log.debug('cleanup_files: removed %s' % str(f))
-#                step_count += 1
-#            status.update(float(step_count)/float(status_len))
-#        except Exception, e:
-#            log.debug('cleanup_filess: %s' % str(e))
-#            errors += 1
-#        if errors:
-#            status.update(-1)
-#        continue
-#    return errors
-
-
 def remove_path(path):
     """ Recusively remove the path given.
 
