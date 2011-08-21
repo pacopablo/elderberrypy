@@ -1,4 +1,3 @@
-#!python
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2011 John Hampton <pacopablo@pacopablo.com>
@@ -9,19 +8,15 @@
 #
 # Author: John Hampton <pacopablo@pacopablo.com>
 
+from elderberrypy.utils import percent
+
 import os
 import logging
+log = logging.getLogger('elderberrypy.tests.utils')
 
-log = logging.getLogger('elderberrypy.utils')
+from nose.tools import with_setup, assert_false, raises
 
-__all__ = [
-    'percent',
-    'PKG_BASE',
-]
+def test_percent():
+    assert(percent(1, 1) == 1)
+    assert(percent(2, 1) == 0.5)
 
-PKG_BASE = os.path.dirname(__file__)
-
-def percent(total, count):
-    """ Returns the percent done represented as a float """
-
-    return float(count) / float(total)
