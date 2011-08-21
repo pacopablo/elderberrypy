@@ -8,6 +8,7 @@
 # you should have received as part of this distribution.
 #
 # Author: John Hampton <pacopablo@pacopablo.com>
+import logging
 
 log = logging.getLogger('elderberrypy.utils')
 
