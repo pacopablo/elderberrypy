@@ -33,7 +33,7 @@ from optparse import OptionParser
 from StringIO import StringIO
 from time import sleep
 from elderberrypy.termctl import OKProgress, TerminalController
-from elderberrypy.fs import check_dir, PKG_BASE, chmod, copy, count_files, remove_path
+from elderberrypy.fs import check_dir, PKG_BASE, chmod, copy, count_files, remove_path, remove_users, remove_groups
 from elderberrypy.accounts import create_user, create_group
 from elderberrypy.transforms import set_ebpy_root, set_ebpy_etc, set_ebpy_distutils_root, set_supervisor_init_vals, set_sudoers, set_supervisor_config
 from elderberrypy.distro import DISTROS, guess_distro
@@ -143,6 +143,14 @@ def cleanup_files(opts, filelist):
             progress.update(-1)
 
     return
+
+def cleanup_users(opts):
+    """ Remove users created via ``ebpy`` """
+    pass
+
+def cleanup_groups(opts):
+    """ Remove groups created via ``ebpy`` """
+    pass
 
 
 def munge_file(opts, path, munger):
@@ -318,9 +326,9 @@ def main(args):
         'pkg_files': os.path.join(PKG_BASE, 'files'),
     }
     if args.cleanup:
-#        cleanup_users(args)
-#        if args.all:
-#            cleanup_groups(args)
+        cleanup_users(args)
+        if args.all:
+            cleanup_groups(args)
         cleanup_files(args, args.base_path)
     else:
         check_dirs(args, "Checking Pre-requisite directories", pre_req_dirs)

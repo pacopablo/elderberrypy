@@ -16,7 +16,7 @@ import random
 import string
 import time
 import logging
-log = logging.getLogger('elderberrypy.fs')
+log = logging.getLogger('elderberrypy.test.fs')
 
 from nose.tools import with_setup, assert_false, raises
 
@@ -79,6 +79,7 @@ def mock_remove():
 
     def mock_os_remove(f):
         log.debug('Restricted Path Test -- ERROR -- tired to delete: %s' % str(f))
+
     SAVED_OS_REMOVE = elderberrypy.fs.os.remove
     elderberrypy.fs.os.remove = mock_os_remove
 

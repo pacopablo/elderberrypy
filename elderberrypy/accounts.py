@@ -27,6 +27,76 @@ __all__ = [
     'check_gid',
 ]
 
+RESTRICTED_USERS = [
+    'root',
+    'bin',
+    'daemon',
+    'adm',
+    'lp',
+    'sync',
+    'shutdown',
+    'halt',
+    'mail',
+    'uucp',
+    'operator',
+    'games',
+    'gopher',
+    'ftp',
+    'nobody',
+    'dbus',
+    'vcsa',
+    'saslauth',
+    'postfix',
+    'haldaemon',
+    'sshd',
+]
+
+RESTRICTED_GROUPS = [
+    'root',
+    'bin',
+    'daemon',
+    'sys',
+    'adm',
+    'tty',
+    'disk',
+    'lp',
+    'mem',
+    'kmem',
+    'wheel',
+    'mail',
+    'uucp',
+    'man',
+    'games',
+    'gopher',
+    'video',
+    'dip',
+    'ftp',
+    'lock',
+    'audio',
+    'nobody',
+    'users',
+    'dbus',
+    'utmp',
+    'utempter',
+    'floppy',
+    'vcsa',
+    'cdrom',
+    'tape',
+    'dialout',
+    'saslauth',
+    'postdrop',
+    'postfix',
+    'haldaemon',
+    'sshd',
+    'screen',
+    'stapdev',
+    'stapusr',
+    'stap-server',
+    'tcpdump',
+    'slocate',
+]
+
+
 
 
 def get_uid(uid):
@@ -158,3 +228,23 @@ def create_group(groupname):
     return rc == 0
 
 
+def remove_user(user):
+    """ Remove the given user from the system. """
+    rc = 1
+    if not (user in RESTRICTED_USERS):
+        cmd = ['userdel', '-r',  user]
+        p = Popen(cmd, stdout=PIPE, stderr=STDOUT)
+        output = p.communicate()[0]
+        rc = p.returncode
+    return rc == 0
+
+
+def remove_group(group):
+    """ Remove the given group from the system. """
+    rc = 1
+    if not (group in RESTRICTED_GROUPS):
+        cmd = ['groupdel', group]
+        p = Popen(cmd, stdout=PIPE, stderr=STDOUT)
+        output = p.communicate()[0]
+        rc = p.returncode
+    return rc == 0
