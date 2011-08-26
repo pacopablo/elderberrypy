@@ -33,8 +33,8 @@ from optparse import OptionParser
 from StringIO import StringIO
 from time import sleep
 from elderberrypy.termctl import OKProgress, TerminalController
-from elderberrypy.fs import check_dir, PKG_BASE, chmod, copy, count_files, remove_path, remove_users, remove_groups
-from elderberrypy.accounts import create_user, create_group
+from elderberrypy.fs import check_dir, PKG_BASE, chmod, copy, count_files, remove_path
+from elderberrypy.accounts import create_user, create_group, remove_user, remove_group
 from elderberrypy.transforms import set_ebpy_root, set_ebpy_etc, set_ebpy_distutils_root, set_supervisor_init_vals, set_sudoers, set_supervisor_config
 from elderberrypy.distro import DISTROS, guess_distro
 from elderberrypy.errors import UnknownDistro
@@ -144,12 +144,38 @@ def cleanup_files(opts, filelist):
 
     return
 
+
 def cleanup_users(opts):
     """ Remove users created via ``ebpy`` """
+    users = pwd.getpwall()
+    ebpy_root = opts.env['base']
+    del_users = [u.pw_name for u in users if (u.pw_dir.startswith(ebpy_root))]
+    prereq = OKProgress(opts.term, "Removing ElderberryPy users")
+    prereq_len = len(del_users)
+    for i, u in enumerate(del_users):
+        log.debug('cleanup_users: %s' % str(u))
+        rc = remove_user(u)
+        if not rc:
+            prereq.update(-1)
+            break
+        prereq.update(float(i + 1)/float(prereq_len))
+        continue
     pass
+
 
 def cleanup_groups(opts):
     """ Remove groups created via ``ebpy`` """
+    groups = ['ftw', 'srvadmins']
+    prereq = OKProgress(opts.term, "Removing ElderberryPy groups")
+    prereq_len = len(groups)
+    for i, g in enumerate(groups):
+        log.debug('cleanup_groups: %s' % str(g))
+        rc = remove_group(g)
+        if not rc:
+            prereq.update(-1)
+            break
+        prereq.update(float(i + 1)/float(prereq_len))
+        continue
     pass
 
 
