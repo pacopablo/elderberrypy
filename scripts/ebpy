@@ -49,6 +49,7 @@ pre_req_dirs = [
 ebpy_paths = [
     {'path': "%(opt)s/bin",                   'uid': "root", 'gid':"srvadmins", 'mode':0775,},
     {'path': "%(opt)s/etc",                   'uid': "root", 'gid':"srvadmins", 'mode':0775,},
+    {'path': "%(opt)s/etc/nginx",             'uid': "root", 'gid':"srvadmins", 'mode':0775,},
     {'path': "%(opt)s/etc/nginx/vhosts.d",    'uid': "root", 'gid':"srvadmins", 'mode':0775,},
     {'path': "%(opt)s/log",                   'uid': "root", 'gid':"srvadmins", 'mode':0775,},
     {'path': "%(opt)s/log/installs",          'uid': "root", 'gid':"srvadmins", 'mode':0775,},
@@ -60,6 +61,9 @@ ebpy_paths = [
     {'path': "%(opt)s/lib",                   'uid': "root", 'gid':"srvadmins", 'mode':0775,},
     {'path': "%(opt)s/share",                 'uid': "root", 'gid':"srvadmins", 'mode':0775,},
     {'path': "%(opt)s/src",                   'uid': "root", 'gid':"ftw",       'mode':0775,},
+    {'path': "%(opt)s/var/html",              'uid': "root", 'gid':"srvadmins", 'mode':0775,},
+    {'path': "%(opt)s/var/tmp/nginx",         'uid': "root", 'gid':"srvadmins", 'mode':0775,},
+    {'path': "%(opt)s/var/run/nginx",                                                       },
     {'path': "%(opt)s/var/run/supervisord",                                                 },
 ]
 
@@ -80,6 +84,10 @@ ebpy_files = [
     {'source': "%(pkg_files)s/elderberrypy/pkgs/setuptools.sh", 'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
     {'source': "%(pkg_files)s/elderberrypy/pkgs/supervisor.sh", 'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
     {'source': "%(pkg_files)s/elderberrypy/pkgs/distribute.sh", 'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+    {'source': "%(pkg_files)s/elderberrypy/pkgs/freetds.sh",    'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+    {'source': "%(pkg_files)s/elderberrypy/pkgs/nginx.sh",      'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+    {'source': "%(pkg_files)s/elderberrypy/pkgs/pyodbc.sh",     'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+    {'source': "%(pkg_files)s/elderberrypy/pkgs/unixODBC.sh",   'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
 # Local Etc layout
     {'source': "%(pkg_files)s/etc/bashrc",                              'dest':"%(opt)s/etc/",                    'uid': "root", 'gid':"srvadmins",              'transform':set_ebpy_root,        },
     {'source': "%(pkg_files)s/etc/supervisord.conf",                    'dest':"%(opt)s/etc/",                    'uid': "su",   'gid':"srvadmins",              'transform':set_supervisor_config,},
