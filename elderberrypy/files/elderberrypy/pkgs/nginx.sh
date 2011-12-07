@@ -8,8 +8,8 @@
 #  into
 #  outof
 
-# Git info
-NGINX_VER=0.8.47
+# nginx info
+NGINX_VER=1.0.10
 NGINX_URL=http://nginx.org/download/nginx-${NGINX_VER}.tar.gz
 
 function pkg_install(){

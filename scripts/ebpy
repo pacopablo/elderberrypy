@@ -29,6 +29,7 @@ plogger.setLevel(logging.DEBUG)
 import sys
 import os
 import subprocess
+import pwd
 from optparse import OptionParser
 from StringIO import StringIO
 from time import sleep
@@ -84,10 +85,10 @@ ebpy_files = [
     {'source': "%(pkg_files)s/elderberrypy/pkgs/setuptools.sh", 'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
     {'source': "%(pkg_files)s/elderberrypy/pkgs/supervisor.sh", 'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
     {'source': "%(pkg_files)s/elderberrypy/pkgs/distribute.sh", 'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
-    {'source': "%(pkg_files)s/elderberrypy/pkgs/freetds.sh",    'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
-    {'source': "%(pkg_files)s/elderberrypy/pkgs/nginx.sh",      'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
-    {'source': "%(pkg_files)s/elderberrypy/pkgs/pyodbc.sh",     'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
-    {'source': "%(pkg_files)s/elderberrypy/pkgs/unixODBC.sh",   'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+#    {'source': "%(pkg_files)s/elderberrypy/pkgs/freetds.sh",    'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+#    {'source': "%(pkg_files)s/elderberrypy/pkgs/nginx.sh",      'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+#    {'source': "%(pkg_files)s/elderberrypy/pkgs/pyodbc.sh",     'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
+#    {'source': "%(pkg_files)s/elderberrypy/pkgs/unixODBC.sh",   'dest':"%(opt)s/elderberrypy/pkgs/", 'uid': "root", 'gid':"srvadmins",},
 # Local Etc layout
     {'source': "%(pkg_files)s/etc/bashrc",                              'dest':"%(opt)s/etc/",                    'uid': "root", 'gid':"srvadmins",              'transform':set_ebpy_root,        },
     {'source': "%(pkg_files)s/etc/supervisord.conf",                    'dest':"%(opt)s/etc/",                    'uid': "su",   'gid':"srvadmins",              'transform':set_supervisor_config,},
