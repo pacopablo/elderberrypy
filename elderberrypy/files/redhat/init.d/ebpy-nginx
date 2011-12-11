@@ -1,0 +1,63 @@
+#!/bin/sh
+# RedHat startup script for nginx
+#
+# chkconfig: 2345 80 20
+# description: nginx
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+NGINX="/srv/opt/bin/nginx"
+CONFIG="/srv/opt/etc/nginx/nginx.conf"
+
+name="ebpy-nginx"
+
+[ -f $NGINX ] || exit 1
+[ -f $CONFIG ] || exit 1
+
+RETVAL=0
+
+start() {
+     echo -n "Starting $name: "
+     $NGINX -c $CONFIG
+     RETVAL=$?
+     [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$name
+     echo
+     return $RETVAL
+}
+
+stop() {
+     echo -n "Stopping $name: "
+     $NGINX -c $CONFIG shutdown
+     RETVAL=$?
+     [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$name
+     echo
+     return $RETVAL
+}
+
+configtest() {
+    echo "Testing $name confg"
+    $NGINX -t
+    return $RETVAL
+}
+
+case "$1" in
+         start)
+             start
+             ;;
+
+         stop)
+             stop
+             ;;
+
+         restart)
+             stop
+             start
+             ;;
+         test)
+             configtest
+             ;;
+esac
+
+exit $REVAL
+
