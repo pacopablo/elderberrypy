@@ -9,7 +9,7 @@
 #  outof
 
 # Git info
-UNIXODBC_VER=2.3.0
+UNIXODBC_VER=2.3.1
 UNIXODBC_URL=http://www.unixodbc.org/unixODBC-${UNIXODBC_VER}.tar.gz
 
 function pkg_install(){
@@ -29,7 +29,10 @@ function pkg_install(){
     into unixODBC-${UNIXODBC_VER}
 
     # Configure
-    ./configure --prefix=${EBPY_SRV_ROOT}/opt >> ${LOGFILE} 2>&1
+    ./configure --prefix=${EBPY_SRV_ROOT}/opt \
+		--enable-iconv \
+		--with-iconv-char-enc=UTF8 \
+  		--with-iconv-ucode-enc=UTF16LE >> ${LOGFILE} 2>&1
     RVAL=$?;
     if [ $? -ne 0 ]; then
         return $RVAL
